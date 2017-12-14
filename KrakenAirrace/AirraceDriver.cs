@@ -30,7 +30,7 @@ namespace KrakenAirrace
         // Best time 
         public TimeSpan record = new TimeSpan(0);
 
-
+        public const string version = "0.3.3";
 
         // The current airrace
         public Airrace race;
@@ -43,12 +43,12 @@ namespace KrakenAirrace
         public Dictionary<Part, PartSelector> all = new Dictionary<Part, PartSelector>();
 
         // Audio stuff
-        public AudioClip correct = GameDatabase.Instance.GetAudioClip("krakenairrace/Sounds/correct");
+        public AudioClip correctclip = GameDatabase.Instance.GetAudioClip("krakenairrace/Sounds/correct");
+        public AudioClip finishclip = GameDatabase.Instance.GetAudioClip("krakenairrace/Sounds/finish");
         public AudioSource audiosource = new AudioSource();
 
-
-        // Adds the controller module
-        public override void OnLoadVessel()
+    // Adds the controller module
+    public override void OnLoadVessel()
 
         {
 
@@ -59,18 +59,20 @@ namespace KrakenAirrace
                 audiosource.bypassListenerEffects = true;
                 audiosource.minDistance = 10000;
                 audiosource.maxDistance = 10000;
-                audiosource.priority = 10;
-                audiosource.dopplerLevel = 0;
-                audiosource.spatialBlend = 1;
                 audiosource.rolloffMode = AudioRolloffMode.Linear;
             }
 
+            
 
-            if (!(vessel.name.Contains("Pylon")))
+            if (vessel.isActiveVessel)
             {
                 controller = (Controller)vessel.rootPart.AddModule(typeof(Controller).Name);
                 controller.driver = this;
             }
+
+
+
+
 
 
         }
@@ -166,7 +168,7 @@ namespace KrakenAirrace
 
                     }
 
-#endif 
+#endif
                     all.Clear();
                     next = PartSelector.Create(race.targets[0].part, p => { }, XKCDColors.BrightAqua, XKCDColors.BrightAqua);
                     ScreenMessages.PostScreenMessage("Nächste Pylone: " + race.targets[0].part.vessel.vesselName, 5f, ScreenMessageStyle.UPPER_CENTER);
@@ -180,7 +182,7 @@ namespace KrakenAirrace
                     
                 }
                 if (!isTraining)
-                audiosource.PlayOneShot(correct);
+                audiosource.PlayOneShot(correctclip);
             }
             
             
@@ -249,16 +251,19 @@ namespace KrakenAirrace
                 if (!driver.isRacing) return;
                 TimeSpan time = TimeSpan.FromSeconds(Planetarium.GetUniversalTime() - driver.raceStart);
                 timePassed = $"{time.Minutes:00}:{time.Seconds:00}:{time.Milliseconds:0000}";
+
             }
 
 
             void OnGUI()
             {
+                if (vessel.isActiveVessel && vessel.CurrentControlLevel == Vessel.ControlLevel.FULL)
+                {
                 GUI.skin.label.fontSize = 18;
                 GUI.skin.label.fontStyle = FontStyle.Bold;
                 GUI.skin.button.fontSize = 16;
                 GUI.skin.box.fontSize = 16;
-                GUI.Box(new Rect(5, 40, 240, 170), new GUIContent("[KAR]Kraken Airrace v0.3.1"));
+                GUI.Box(new Rect(5, 40, 240, 170), new GUIContent("[KAR]Kraken Airrace v" + version));
                 GUI.Label(new Rect(18, 75, 240, 30), "Zeit: " + timePassed);
                 GUI.Label(new Rect(18, 95, 240, 30), "QC: " + qc.ToString());
                 if (GUI.Button(new Rect(65, 125, 120, 30), !driver.isEnabled ? "START" : "STOP"))
@@ -287,6 +292,7 @@ namespace KrakenAirrace
                     GUI.Label(new Rect(Screen.width - 310, Screen.height - 120, 300, 50), System.Math.Round(vessel.speed, 0) + "m/s");
                     GUI.skin.label.fontSize = 18;
                     GUI.Label(new Rect(Screen.width - 310, Screen.height - 90, 300, 50), System.Math.Round(vessel.speed * 3.6, 0) + "km/h");
+                    }
                 }
 
 
@@ -311,6 +317,8 @@ namespace KrakenAirrace
             }
 
         }
+    
+        
 
         
     }
